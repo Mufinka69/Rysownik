@@ -5,12 +5,16 @@
 #include <cassert>
 #include <vector>
 #include "raylib.h"
+#include <fstream>
+#include <string>
+#include <sstream>
 
 
 #include "Button.h"
 #include "iterator.h"
 #include "Bezier_curve.h"
 #include "Work_space.h"
+#include "text_box.h"
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
@@ -67,8 +71,44 @@ public:
 };
 
 
+std::vector<Bezier_curve> jakas_funkcja_bez_konkretnej_nazwy() {
+    std::ifstream file("dane.txt");
+    std::vector<Bezier_curve> curve;
+    float x, y;
+    int size;
+    int l = 0;
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream ss(line);
+            l = 0;
+            for (char znak : line) {
+                if (isspace(znak)) {
+                    l++;
+                }
+            }
+            if (l == 0) {
+                ss >> size;
+                curve.push_back(Bezier_curve(10, BLACK));
+            }
+            else if (l == 1) {
+                ss >> x >> y;
+                curve.back().add_point({x,y});
+            }
+        }
+    }
+    file.close();
+
+    return curve;
+}
+
 int main()
 {
+    std::vector<Bezier_curve> curvee = jakas_funkcja_bez_konkretnej_nazwy();
+    for (int i = 0; i < curvee.size(); i++) {
+        curvee[i].calculate_bcurve();
+    }
+
     Work_space work_space = Work_space(70,70, WORKSPACE_WIDTH, WORKSPACE_HEIGHT, 5);
     Work_space tools = Work_space(WORKSPACE_WIDTH + 70*2, 70, 174, WORKSPACE_HEIGHT, 5);
     Iterator iterator = Iterator();
@@ -86,6 +126,14 @@ int main()
     Button c_green = Button(WORKSPACE_WIDTH + 160, 90 + 70 * 5, 139, 50, GREEN);
     Button c_pink = Button(WORKSPACE_WIDTH + 160, 90 + 70 * 6, 139, 50, PINK);
     Button c_blue = Button(WORKSPACE_WIDTH + 160, 90 + 70 * 7, 139, 50, BLUE);
+
+
+    Button read = Button(0, 0, 90, 30, BLUE);
+    read.set_text("Wczytaj Punkty");
+    read.set_text_size(25);
+    read.set_text_pos(5, 5);
+    Text_box save_file = Text_box(50, 50, 10, 10, RED);
+    bool show_save = false;
 
 
     Vector2 mouse_pos = GetMousePosition();
@@ -173,20 +221,19 @@ int main()
         //std::cout << mouse_pos.x << ", "<< mouse_pos.y << std::endl;
         //DrawRectangleV(mouse_pos, { 10, 10 }, RED);
 
-        if (pencil.click(mouse_pos)) {
-
-            curves.push_back(Bezier_curve(10, iterator.get_color(iterator.get_size())));
+        if (pencil.click()) {
+            curves.push_back(Bezier_curve(10, pencil_color));
             iterator.increase_size();
             iterator.move_up();
 
             tool = 0;
             std::cout << tool << std::endl;
         }
-        if (bezier.click(mouse_pos)) {
+        if (bezier.click()) {
             tool = 1;
             std::cout << tool << std::endl;
         }
-        if (button3.click(mouse_pos)) {
+        if (button3.click()) {
             if (draw_control) {
                 draw_control = false;
             }
@@ -195,25 +242,26 @@ int main()
             }
         }
 
-        if (c_red.click(mouse_pos)) {
+        if (c_red.click()) {
             pencil_color = RED;
         }
-        if (c_green.click(mouse_pos)) {
+        if (c_green.click()) {
             pencil_color = GREEN;
         }
-        if (c_black.click(mouse_pos)) {
+        if (c_black.click()) {
             pencil_color = BLACK;
         }
-        if (c_pink.click(mouse_pos)) {
+        if (c_pink.click()) {
             pencil_color = PINK;
         }
-        if (c_blue.click(mouse_pos)) {
+        if (c_blue.click()) {
             pencil_color = BLUE;
         }
 
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
+
 
         pencils.draw();
         work_space.draw_border();
@@ -228,6 +276,19 @@ int main()
         c_pink.draw();
         c_blue.draw();
 
+        read.draw();
+
+        if (read.click()) {
+            show_save = true;
+        }
+        if (show_save) {
+            int i = 3;
+            for (int i = 0; i < curvee.size(); i++) {
+                curvee[i].drav_curve();
+            }
+        }
+
+
         DrawText("Rysownik", 70, 10, 50, BLACK);
         //DrawText(TextFormat("Ilosc punktow: %d", curve.Points.size()), 10, SCREEN_HEIGHT - 50, 50, BLACK);
         DrawText(TextFormat("Ilosc Krzywych: %d", iterator.get_size()), 10, SCREEN_HEIGHT - 50, 20, BLACK);
@@ -235,8 +296,6 @@ int main()
         DrawRectangle(190, SCREEN_HEIGHT - 22, 20, 20, iterator.get_color(iterator.get_index()-1));
         DrawRectangle(300, SCREEN_HEIGHT - 22, 20, 20, pencil_color);
 
-
-        
         for (int i = 0; i < curves.size(); i++) {
             curves[i].calculate_bcurve();
             curves[i].drav_curve();

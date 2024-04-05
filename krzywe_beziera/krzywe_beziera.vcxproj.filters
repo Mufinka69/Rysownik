@@ -32,5 +32,11 @@
     <ClInclude Include="Work_space.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="text_box.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="punkty.txt" />
   </ItemGroup>
 </Project>

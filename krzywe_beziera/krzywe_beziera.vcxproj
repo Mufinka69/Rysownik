@@ -133,7 +133,11 @@
     <ClInclude Include="Bezier_curve.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="Iterator.h" />
+    <ClInclude Include="text_box.h" />
     <ClInclude Include="Work_space.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="punkty.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
